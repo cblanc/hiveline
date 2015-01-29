@@ -8,12 +8,12 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: example.rb [options]"
 
-  opts.on("-u", "--username", "Login username") do |p|
-    options[:password] = v
+  opts.on("-u", "--username", "Login username") do |username|
+    options[:username] = username
   end
 
-  opts.on("-p", "--password", "Login password") do |p|
-    options[:password] = p
+  opts.on("-p", "--password", "Login password") do |password|
+    options[:password] = password
   end
 end.parse!
 

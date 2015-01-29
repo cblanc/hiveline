@@ -1,0 +1,49 @@
+#!/usr/bin/ruby
+
+require 'optparse'
+require './lib/hiveline'
+
+options = {}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: example.rb [options]"
+
+  opts.on("-u", "--username", "Login username") do |p|
+    options[:password] = v
+  end
+
+  opts.on("-p", "--password", "Login password") do |p|
+    options[:password] = p
+  end
+end.parse!
+
+username = options[:username] || ENV["HIVE_USERNAME"]
+
+if username.nil?
+	print "Please provide a username with a flag (-u) or as an environment variable exports HIVE_USERNAME=\"your_username\"\n"
+	exit false
+end
+
+password = options[:password] || ENV["HIVE_PASSWORD"]
+
+if password.nil?
+	print "Please provide a password with a flag (-p) or as an environment variable exports HIVE_PASSWORD=\"your_password\"\n"
+	exit false
+end
+
+temp = ARGV.last
+
+def numeric?(number)
+  return true if number =~ /^\d+$/
+  true if Float(number) rescue false
+end
+
+if temp.nil? or !numeric?(temp)
+	print "Please supply a temperature. E.g. hiveline 21\n"
+	exit false
+else
+	temp = temp.to_i
+end
+
+client = HiveClient.new(username, password)
+client.set_temperature temp

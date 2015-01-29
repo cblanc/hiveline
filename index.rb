@@ -33,6 +33,20 @@ if password.nil?
 	exit false
 end
 
+temp = ARGV.last
+
+def numeric?(number)
+  return true if number =~ /^\d+$/
+  true if Float(number) rescue false
+end
+
+if temp.nil? or !numeric?(temp)
+	print "Please supply a temperature. E.g. hiveline 21\n"
+	exit false
+else
+	temp = temp.to_i
+end
+
 # Login with credentials and return cookie
 
 def login(username, password)
@@ -86,4 +100,4 @@ def set_temperature(id, temp)
 end
 
 id = get_id(username, password)
-set_temperature(id, 20)
+set_temperature(id, temp)

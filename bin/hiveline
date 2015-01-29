@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 require 'optparse'
-require './lib/hiveline'
+require 'hiveline'
 
 options = {}
 
@@ -45,5 +45,5 @@ else
 	temp = temp.to_i
 end
 
-client = HiveClient.new(username, password)
+client = Hiveline::Client.new(username, password)
 client.set_temperature temp

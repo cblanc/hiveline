@@ -4,7 +4,7 @@ Adjust your [Hive](https://my.hivehome.com/) thermostat via your terminal.
 
 Warning: This uses hives unofficial and undocumented API. It can break at any time.
 
-## Install
+## Install (gem not yet implemented)
 
 ```bash
 gem install hiveline
@@ -27,6 +27,8 @@ $ hiveline -u <email> -p <password>
 ```
 
 ## Use
+
+Set the temperature to 20C
 
 ```bash
 $ hiveline 20

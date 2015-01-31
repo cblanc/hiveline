@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+require 'date'
 require 'optparse'
 require 'hiveline'
 
@@ -14,6 +15,10 @@ OptionParser.new do |opts|
 
   opts.on("-p", "--password", "Login password") do |password|
     options[:password] = password
+  end
+
+  opts.on("-h", "--history", "History") do
+    options[:history] = true
   end
 end.parse!
 
@@ -65,9 +70,40 @@ def lookup_temperature(client)
   end
 end
 
+def lookup_history(client)
+  print "Retrieving history\n"
+  history = client.get_history
+  unless history.nil?
+    history
+  else
+    unknown_error
+  end
+end
+
 if numeric?(command)
-  set_temperature(client, command)
+  set_temperature client, command
   exit
 end
 
-lookup_temperature(client)
+def pretty_print_temp(p, max)
+  max_width = 35
+  d = DateTime.parse(p["date"])
+  print d.strftime("%H %p ")
+  temp = p["temperature"]
+  bar_length = ((temp / max) * max_width).round
+  bar_length.times { print '=' }
+  (max_width - bar_length).times { print ' ' }
+  print " #{p["temperature"].round(1)}°C"
+  print "\n"
+end
+
+if options[:history]
+  history = lookup_history client
+  max = history["data"].map { |p| p["temperature"] }.max
+  history["data"]
+    .reject { |p| DateTime.parse(p["date"]).strftime("%M") != "00" }
+    .each { |p| pretty_print_temp p, max }
+  exit
+end
+
+lookup_temperature client

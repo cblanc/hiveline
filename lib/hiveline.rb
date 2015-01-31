@@ -53,6 +53,22 @@ module Hiveline
 			end
 		end
 
+		def get_history
+			history_url = "https://my.hivehome.com/history/today"
+			response = self.class.get(history_url, {
+				headers: {
+					"Cookie" => "hsid=#{self.session}",
+					"Content-Type" => "application/json"
+					},
+				follow_redirects: false
+			})
+			if response.code == 200
+				JSON.parse(response.body)
+			else
+				nil
+			end
+		end
+
 		private
 
 		def retrieve_session

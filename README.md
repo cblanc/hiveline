@@ -40,7 +40,7 @@ Weather in London: Cloudy With Light Rain (2.8°C)
 Set temperature
 
 ```bash
-$ hiveline 20 # Set temperature to 20°C
+$ hiveline 19 # Set temperature to 19°C
 
 Setting temperature to 19°C
 Successfully updated temperature. Set to 19°C

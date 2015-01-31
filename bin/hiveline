@@ -31,19 +31,43 @@ if password.nil?
 	exit false
 end
 
-temp = ARGV.last
+client = Hiveline::Client.new(username, password)
+
+command = ARGV.last
+
+def unknown_error
+  print "Something went wrong. Not sure what though because the API is not documented... maybe get up and go check your thermostat?\n"
+end
 
 def numeric?(number)
   return true if number =~ /^\d+$/
   true if Float(number) rescue false
 end
 
-if temp.nil? or !numeric?(temp)
-	print "Please supply a temperature. E.g. hiveline 21\n"
-	exit false
-else
-	temp = temp.to_i
+def set_temperature(client, temp)
+  prints "Setting temperature to #{temp}°C\n"
+  temperature = client.set_temperature(temp)
+  unless temperature.nil?
+    print "Successfully updated temperature. Set to #{temperature}°C\n"
+  else
+    unknown_error
+  end
 end
 
-client = Hiveline::Client.new(username, password)
-client.set_temperature temp
+def lookup_temperature(client)
+  prints "Retrieving temperature information\n"
+  environment = client.get_temperature
+  unless environment.nil?
+    print "Inside Temperature: #{environment["inside"]}°C\n"
+    print "Weather in #{environment["city"]}: #{environment['weather'].split('_').map{|e| e.capitalize}.join(" ")} (#{environment["outside"]}°C)\n"
+  else
+    unknown_error
+  end
+end
+
+if numeric?(command)
+  set_temperature(client, command)
+  exit
+end
+
+lookup_temperature(client)

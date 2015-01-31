@@ -28,8 +28,18 @@ $ hiveline -u <email> -p <password>
 
 ## Use
 
-Set the temperature to 20C
+Get temperature
 
 ```bash
-$ hiveline 20
+$ hiveline
+
+
+```
+
+Set temperature
+
+```bash
+$ hiveline 20 # Set temperature to 20°C
+
+
 ```

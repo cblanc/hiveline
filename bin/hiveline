@@ -64,7 +64,9 @@ def lookup_temperature(client)
   environment = client.get_temperature
   unless environment.nil?
     print "Inside Temperature: #{environment["inside"]}°C\n"
-    print "Weather in #{environment["city"]}: #{environment['weather'].split('_').map{|e| e.capitalize}.join(" ")} (#{environment["outside"]}°C)\n"
+    if environment['weather'] && environment['outside']
+      print "Weather in #{environment["city"]}: #{environment['weather'].split('_').map{|e| e.capitalize}.join(" ")} (#{environment["outside"]}°C)\n"
+    end
   else
     unknown_error
   end

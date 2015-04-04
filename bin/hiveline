@@ -62,11 +62,11 @@ end
 def lookup_temperature(client)
   print "Retrieving temperature information\n"
   environment = client.get_temperature
+  inside = environment["inside"]
+  outside = environment["outside"]
   unless environment.nil?
-    print "Inside Temperature: #{environment["inside"]}°C\n"
-    if environment['weather'] && environment['outside']
-      print "Weather in #{environment["city"]}: #{environment['weather'].split('_').map{|e| e.capitalize}.join(" ")} (#{environment["outside"]}°C)\n"
-    end
+    print "Inside Temperature: #{inside["now"]}°C (#{inside["averages"]["today"]}°C todays average)\n"
+    print "Outide Temperature: #{outside["now"]}°C (#{outside["weather"]["description"]})\n"
   else
     unknown_error
   end

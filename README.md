@@ -33,8 +33,8 @@ Get temperature
 ```bash
 $ hiveline
 
-Inside Temperature: 19.9°C
-Weather in London: Cloudy With Light Rain (2.8°C)
+Inside Temperature: 16.8°C (17°C todays average)
+Outide Temperature: 7.2°C (Partly Cloudy)
 ```
 
 Set temperature

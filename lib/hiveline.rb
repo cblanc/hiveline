@@ -5,15 +5,23 @@ require 'json'
 module Hiveline
 	class Client
 		include HTTParty
-		attr_accessor :username, :password, :session
+		attr_accessor :username, :password, :session, :ui_session, :api_session
 
 		def initialize(username, password)
 			@username = username
 			@password = password
 		end
 
-		def session
-			@session ||= retrieve_session
+		def api_session
+			@api_session ||= session_ids[:api_session]
+		end
+
+		def ui_session
+			@ui_session ||= session_ids[:ui_session]
+		end
+
+		def session_ids
+			@session ||= get_session_ids
 		end
 
 		def set_temperature(temp)
@@ -25,7 +33,7 @@ module Hiveline
 					target:temp
 				},
 				headers: {
-					"Cookie" => "hsid=#{id}"
+					"Cookie" => "ApiSession=#{self.api_session}; UiSession=#{self.ui_session}",
 				},
 				follow_redirects: false
 			})
@@ -38,10 +46,10 @@ module Hiveline
 		end
 
 		def get_temperature
-			weather_url = "https://my.hivehome.com/weather"
+			weather_url = "https://api.hivehome.com/v5/users/#{self.username}/widgets/temperature"
 			response = self.class.get(weather_url, {
 				headers: {
-					"Cookie" => "hsid=#{self.session}",
+					"Cookie" => "ApiSession=#{self.api_session}; UiSession=#{self.ui_session}",
 					"Content-Type" => "application/json"
 				},
 				follow_redirects: false
@@ -57,7 +65,7 @@ module Hiveline
 			history_url = "https://my.hivehome.com/history/today"
 			response = self.class.get(history_url, {
 				headers: {
-					"Cookie" => "hsid=#{self.session}",
+					"Cookie" => "ApiSession=#{self.api_session}; UiSession=#{self.ui_session}",
 					"Content-Type" => "application/json"
 					},
 				follow_redirects: false
@@ -71,30 +79,20 @@ module Hiveline
 
 		private
 
-		def retrieve_session
-			extract_session_id login
-		end
-		
-		def extract_session_id(response)
-			id_attribute_regex = /^hsid=/
-			set_cookie_header = response.headers["set-cookie"]
-			set_cookie_header
-				.split(";")
-				.each(&:strip!)
-				.grep(id_attribute_regex)
-				.first
-				.gsub(id_attribute_regex, "")
-		end
-
-		def login
-			login_url = "https://my.hivehome.com/login"
-			self.class.post(login_url, {
+		def get_session_ids
+			login_url = "https://api.hivehome.com/v5/login"
+			response = self.class.post(login_url, {
 				body: {
 					username: @username,
 					password: @password
 				}, 
 				follow_redirects: false
 			})
+			body = JSON.parse(response.body)
+			{
+				api_session: body["ApiSession"],
+				ui_session: body["UiSession"]
+			}
 		end
 	end
 end

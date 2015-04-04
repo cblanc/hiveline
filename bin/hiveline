@@ -51,8 +51,8 @@ end
 
 def set_temperature(client, temp)
   print "Setting temperature to #{temp}°C\n"
-  temperature = client.set_temperature(temp)
-  unless temperature.nil?
+  response_success = client.set_temperature(temp)
+  if response_success
     print "Successfully updated temperature. Set to #{temperature}°C\n"
   else
     unknown_error

@@ -25,24 +25,19 @@ module Hiveline
 		end
 
 		def set_temperature(temp)
-			heating_url = "https://my.hivehome.com/heating/target"
-			id = self.session
+			heating_url = "https://api.hivehome.com/v5/users/#{self.username}/widgets/climate/targetTemperature"
 			response = self.class.put(heating_url, {
 				body: {
-					id:1,
-					target:temp
+					temperature:temp,
+					temperatureUnit: "C"
 				},
 				headers: {
 					"Cookie" => "ApiSession=#{self.api_session}; UiSession=#{self.ui_session}",
 				},
 				follow_redirects: false
 			})
-
-			if response.code == 200
-				JSON.parse(response.body)["target"]
-			else
-				nil
-			end
+			p response
+			response.code == 204
 		end
 
 		def get_temperature

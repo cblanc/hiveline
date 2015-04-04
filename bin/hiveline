@@ -53,7 +53,7 @@ def set_temperature(client, temp)
   print "Setting temperature to #{temp}°C\n"
   response_success = client.set_temperature(temp)
   if response_success
-    print "Successfully updated temperature. Set to #{temperature}°C\n"
+    print "Successfully updated temperature. Set to #{temp}°C\n"
   else
     unknown_error
   end
@@ -92,6 +92,10 @@ def pretty_print_temp(p, max)
   d = DateTime.parse(p["date"])
   print d.strftime("%H %p ")
   temp = p["temperature"]
+  if temp.instance_of? String
+    print "\n"
+    return
+  end
   bar_length = ((temp / max) * max_width).round
   bar_length.times { print '=' }
   (max_width - bar_length).times { print ' ' }
@@ -101,7 +105,14 @@ end
 
 if options[:history]
   history = lookup_history client
-  max = history["data"].map { |p| p["temperature"] }.max
+  max = history["data"].map do |p| 
+    temp = p["temperature"]
+    if temp.instance_of? String 
+      0
+    else
+      temp
+    end
+  end.max
   history["data"]
     .reject { |p| DateTime.parse(p["date"]).strftime("%M") != "00" }
     .each { |p| pretty_print_temp p, max }

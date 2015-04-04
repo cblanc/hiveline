@@ -5,7 +5,7 @@ require 'json'
 module Hiveline
 	class Client
 		include HTTParty
-		attr_accessor :username, :password, :session, :ui_session, :api_session
+		attr_accessor :username, :password, :session_cache
 
 		def initialize(username, password)
 			@username = username
@@ -13,30 +13,29 @@ module Hiveline
 		end
 
 		def api_session
-			@api_session ||= session_ids[:api_session]
+			session[:ApiSession]
 		end
 
-		def ui_session
-			@ui_session ||= session_ids[:ui_session]
+		def hub_ids
+			session[:hubIds]
 		end
 
-		def session_ids
-			@session ||= get_session_ids
+		def session
+			@session_cache ||= get_session
 		end
 
 		def set_temperature(temp)
 			heating_url = "https://api.hivehome.com/v5/users/#{self.username}/widgets/climate/targetTemperature"
 			response = self.class.put(heating_url, {
 				body: {
-					temperature:temp,
+					temperature: temp,
 					temperatureUnit: "C"
 				},
 				headers: {
-					"Cookie" => "ApiSession=#{self.api_session}; UiSession=#{self.ui_session}",
+					"Cookie" => "ApiSession=#{self.api_session}",
 				},
 				follow_redirects: false
 			})
-			p response
 			response.code == 204
 		end
 
@@ -44,7 +43,7 @@ module Hiveline
 			weather_url = "https://api.hivehome.com/v5/users/#{self.username}/widgets/temperature"
 			response = self.class.get(weather_url, {
 				headers: {
-					"Cookie" => "ApiSession=#{self.api_session}; UiSession=#{self.ui_session}",
+					"Cookie" => "ApiSession=#{self.api_session}",
 					"Content-Type" => "application/json"
 				},
 				follow_redirects: false
@@ -57,10 +56,14 @@ module Hiveline
 		end
 
 		def get_history
-			history_url = "https://my.hivehome.com/history/today"
+			# Just get the first device, ignore others
+			hub_id = hub_ids[0]
+			thermostat = get_thermostat hub_id
+			thermostat_id = thermostat["id"]
+			history_url = "https://api.hivehome.com/v5/users/#{self.username}/widgets/temperature/#{thermostat_id}/history?period=today"
 			response = self.class.get(history_url, {
 				headers: {
-					"Cookie" => "ApiSession=#{self.api_session}; UiSession=#{self.ui_session}",
+					"Cookie" => "ApiSession=#{self.api_session}",
 					"Content-Type" => "application/json"
 					},
 				follow_redirects: false
@@ -72,9 +75,28 @@ module Hiveline
 			end
 		end
 
+		def get_devices(hub_id)
+			devices_url = "https://api.hivehome.com/v5/users/#{self.username}/hubs/#{hub_id}/devices"
+			response = self.class.get(devices_url, {
+				headers: {
+					"Cookie" => "ApiSession=#{self.api_session}"	
+				},
+				follow_redirects: false
+			})
+			if response.code == 200
+				JSON.parse(response.body)
+			else
+				nil
+			end
+		end
+
+		def get_thermostat(hub_id)
+			get_devices(hub_id).select { |device| device["type"] == "HAHVACThermostat" }.pop
+		end
+
 		private
 
-		def get_session_ids
+		def get_session
 			login_url = "https://api.hivehome.com/v5/login"
 			response = self.class.post(login_url, {
 				body: {
@@ -83,11 +105,7 @@ module Hiveline
 				}, 
 				follow_redirects: false
 			})
-			body = JSON.parse(response.body)
-			{
-				api_session: body["ApiSession"],
-				ui_session: body["UiSession"]
-			}
+			JSON.parse(response.body, symbolize_names: true)
 		end
 	end
 end
